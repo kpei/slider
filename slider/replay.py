@@ -98,7 +98,7 @@ class HitObjectJudgement:
     def aim_error(self):
         if self.action is None:
             return None
-    return Point(self.action.position.x - self.hit_object.position.x, self.action.position.y - self.hit_object.position.y, 0)
+        return Point(self.action.position.x - self.hit_object.position.x, self.action.position.y - self.hit_object.position.y, 0)
 
 
 def _consume_life_bar_graph(buffer):
