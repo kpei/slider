@@ -752,28 +752,32 @@ class Replay:
                 # spinners are hard
                 scores['300s'].append(HitObjectJudgement(obj, None))
                 continue
+
+            object_miss = None
             # we can ignore events before the hit window so iterate
             # until we get past the beginning of the hit window
             while actions[i].offset < obj.time - hit_50_threshold:
                 i += 1
             starti = i
             while actions[i].offset < obj.time + hit_50_threshold:
-                if (((actions[i].key1 and not actions[i - 1].key1)
-                        or (actions[i].key2 and not actions[i - 1].key2))
-                        and _within(actions[i].position, obj.position, rad)):
+                if ((actions[i].key1 and not actions[i - 1].key1)
+                        or (actions[i].key2 and not actions[i - 1].key2)):
                     # key pressed that wasn't before and
                     # event is in hit window and correct location
-                    if isinstance(obj, Circle):
-                        _process_circle(obj, actions[i], hw, scores)
-                    elif isinstance(obj, Slider):
-                        # Head was hit
-                        starti = i
-                        while actions[i].offset <= obj.end_time:
-                            i += 1
-                        _process_slider(
-                            obj, actions[starti:i + 1], True, rad, scores
-                        )
-                    break
+                    if (_within(actions[i].position, obj.position, rad)):
+                        if isinstance(obj, Circle):
+                            _process_circle(obj, actions[i], hw, scores)
+                        elif isinstance(obj, Slider):
+                            # Head was hit
+                            starti = i
+                            while actions[i].offset <= obj.end_time:
+                                i += 1
+                            _process_slider(
+                                obj, actions[starti:i + 1], True, rad, scores
+                            )
+                        break
+                    else:
+                        object_miss = HitObjectJudgement(obj, actions[i])
                 i += 1
             else:
                 # no events in the hit window were in the correct location
@@ -785,7 +789,8 @@ class Replay:
                         obj, actions[starti:i + 1], False, rad, scores
                     )
                 else:
-                    scores["misses"].append(HitObjectJudgement(obj, None))
+                    object_miss = object_miss if object_miss is not None else HitObjectJudgement(obj, None)
+                    scores["misses"].append(object_miss)
             i += 1
         return scores
 
