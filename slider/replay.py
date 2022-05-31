@@ -7,7 +7,7 @@ from .beatmap import Circle, Slider, Spinner
 from .bit_enum import BitEnum
 from .game_mode import GameMode
 from .mod import Mod, od_to_ms, circle_radius
-from .position import Position
+from .position import Position, Point
 from .utils import (accuracy, lazyval, orange, consume_byte, consume_short,
                     consume_int, consume_string, consume_datetime)
 
