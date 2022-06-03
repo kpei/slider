@@ -777,6 +777,7 @@ class Slider(HitObject):
     """
     type_code = 2
     time_related_attributes = frozenset({'time', 'end_time', 'ms_per_beat'})
+    legacy_last_tick = timedelta(milliseconds=36)
 
     def __init__(self,
                  position,

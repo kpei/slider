@@ -11,7 +11,6 @@ from .position import Position, Point
 from .utils import (accuracy, lazyval, orange, consume_byte, consume_short,
                     consume_int, consume_string, consume_datetime)
 
-
 @unique
 class ActionBitMask(BitEnum):
     """The bitmask values for the action type.
@@ -177,7 +176,7 @@ def _process_circle(obj, rdatum, hw, scores):
 def _process_slider(obj, rdata, head_hit, rad, scores):
     t_changes = []
     t_changes_append = t_changes.append
-    duration = obj.end_time - obj.time
+    duration = obj.end_time - obj.time - obj.legacy_last_tick
     judgement = HitObjectJudgement(obj, None)
 
     if head_hit:
@@ -188,13 +187,16 @@ def _process_slider(obj, rdata, head_hit, rad, scores):
         scores["slider_breaks"].append(judgement)
         on = False
 
+    single_slide_time = duration / obj.repeat
     for datum in rdata:
-        t = (datum.offset - obj.time) / duration
-        if 0 <= t <= 1:
-            nearest_pos = obj.curve(t)
+        t = (datum.offset - obj.time) / single_slide_time
+        direction_flag = int(t) % 2
+        if 0 <= t <= obj.repeat:
+            progress = abs(direction_flag - (t % 1))
+            nearest_pos = obj.curve(progress)
             if (on and
                 not (_pressed(datum)
-                     and _within(nearest_pos, datum.position, rad * 3))):
+                     and _within(nearest_pos, datum.position, rad * 2.4))):
                 t_changes_append(t)
                 on = False
             elif (not on and
@@ -212,7 +214,7 @@ def _process_slider(obj, rdata, head_hit, rad, scores):
             if tick is tick_ts[-1]:
                 if (len(t_changes) > 0 and
                         len(t_changes) == bi and
-                        abs(tick_ts[-1] - t_changes[-1]) < 0.1):
+                        abs(tick_ts[-1] - t_changes[-1]) < 0.05):
                     # held close enough to last tick
                     continue
                 # end tick doesn't cause sliderbreak
